@@ -1,1 +1,1 @@
-This is a end to end datascience project.
+This is fullstack a end to end datascience project.
