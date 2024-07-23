@@ -1,7 +1,4 @@
-import os
-from dotenv import load_dotenv
-# import mysql.connector
-from utils import dbconnect, database , table
+from src.utils import database, dbconnect, table
 
 # load_dotenv(".env")
 

@@ -1,16 +1,15 @@
 import os
-from typing import Tuple 
-from typing import List
-from dotenv import load_dotenv
+from typing import List, Tuple
+
 import mysql.connector
 import pandas as pd
+from dotenv import load_dotenv
 
 load_dotenv(".env")
 
-def dbconnect(
-    hostname: str,
-    username: str,
-    dbname = None)-> Tuple[str,str]: 
+def dbconnect(hostname: str,
+              username: str,
+              dbname:str = None)-> Tuple[str,str]: 
     """
     Method to connect database and python Script
     
@@ -29,12 +28,12 @@ def dbconnect(
                                   password = os.getenv("PASSWORD"),
                                   database = dbname)
 
-    cr = con.cursor(buffered=True)
-    print(f'Connection Stablished')
+    cr = con.cursor()
+    print('Connection Stablished')
     return con, cr
 
 
-def database(cr, dbname: str) -> List[Tuple[str]] : 
+def database(cr:str, dbname:str) -> List[Tuple[str]]: 
     """ Method to create databse using m VALUES(%s,%s)ysql query
     
     Parameters
@@ -50,12 +49,12 @@ def database(cr, dbname: str) -> List[Tuple[str]] :
     cr.execute(f'CREATE DATABASE {dbname};')
     
     #Show all databases on the mysql-server
-    cr.execute(f'SHOW DATABASES;')
+    cr.execute('SHOW DATABASES')
     databases = cr.fetchall()
     return databases
 
 
-def table(cr, dbname:str, tbname: str):
+def table(cr, dbname:str, tbname: str) -> None:
     """ Method to perform table related operation using mysql query
 
     Parameters
@@ -66,17 +65,16 @@ def table(cr, dbname:str, tbname: str):
     """
     
     #Use database
-    cr.execute(f'USE DATABASE {dbname}')
+    cr.execute(f'USE {dbname}')
     
     #Drop Table# load_dotenv(".env")
     cr.execute(f'DROP TABLE IF EXISTS {tbname}')
     
     #Create Table
-    
     cr.execute(f'CREATE Table {tbname} (name VARCHAR(50), membership VARCHAR(50));')
 
 
-def insert_table(cr,con,query,val):
+def insert_table(cr,con,query,val) :
     """ Method to insert into table 
 
     Parameters
@@ -91,3 +89,9 @@ def insert_table(cr,con,query,val):
     cr.executemany(query,val)
     con.commit()
     print(cr.rowcount,"was inserted.")
+
+
+def data(filepath):
+    df = pd.read_csv(filepath)
+    df.drop('unnamed:0',axis=1,inplace=True,errors='ignore')
+    return df
