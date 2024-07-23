@@ -1,57 +1,21 @@
 import os
 from dotenv import load_dotenv
-import mysql.connector
+# import mysql.connector
+from utils import dbconnect, database , table
 
-load_dotenv()
+# load_dotenv(".env")
+
 #Connection to database
-db = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password = os.getenv("PASSWORD"),
-)
+db,cr = dbconnect('localhost','root')
 
-#Create a Cursor
-cr = db.cursor(buffered=True)
 
 #Create Database Inventory
+databases = database(cr,'INVENTORY')
+print(databases)
 
-# cr.execute("DROP DATABASE INVENTORY;")
-# cr.execute("CREATE DATABASE INVENTORY;")
-cr.execute("SHOW DATABASES;")
 
 #Creating table Customers with name and membership
+table(cr,'INVENTORY','customer')
 
-cr.execute("USE INVENTORY;")
-# cr.execute("CREATE TABLE customers (name VARCHAR(255), membership CHAR(50));")
-cr.execute("SHOW TABLES;")
 
 #Insert Values in table Customers
-
-val = [
-  ('Peter', 'basic'),
-  ('Amy', 'premium'),
-  ('Hannah', 'bronze'),
-  ('Michael', 'non-member'),
-  ('Sandy', 'gold'),
-  ('Betty', 'silver'),
-  ('Richard', 'basic'),
-  ('Susan', 'basic'),
-  ('Vicky', 'non-member'),
-  ('Ben', 'premium'),
-  ('William', 'bronze'),
-  ('Chuck', 'gold'),
-  ('Viola', 'non-member')
-]
-
-query = "INSERT INTO customers (name, membership) VALUES (%s, %s);"
-cr.executemany(query,val)
-
-db.commit()
-
-print(cr.rowcount,"was inserted.")
-
-# To print/show table table
-
-cr.execute("SELECT*FROM customers;")
-result = cr.fetchall()
-print(result)
