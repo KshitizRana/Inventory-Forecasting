@@ -1,0 +1,5 @@
+isort
+pandas
+mysql-connector-python
+python-dotenv
+loguru

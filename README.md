@@ -1,1 +1,0 @@
-This is a end to end datascience project.
