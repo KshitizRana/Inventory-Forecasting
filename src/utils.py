@@ -93,5 +93,9 @@ def insert_table(cr,con,query,val) :
 
 def data(filepath):
     df = pd.read_csv(filepath)
-    df.drop('unnamed:0',axis=1,inplace=True,errors='ignore')
+    df.drop(['Unnamed: 0'],axis=1,inplace=True,errors='ignore')
     return df
+
+ds=data('./data/sales.csv')
+ds.to_csv('./data/test.csv',index=True)
+ds2=data('./data/test.csv')
