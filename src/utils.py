@@ -40,6 +40,9 @@ def database(cr:str, dbname:str) -> List[Tuple[str]]:
     ----------
     cr : .
     dbname: the name of the database to create.
+    
+    Returns
+        Returns All databases from the mysql-server
     """
 
     #Drop Database 
@@ -99,3 +102,44 @@ def data(filepath):
 ds=data('./data/sales.csv')
 ds.to_csv('./data/test.csv',index=True)
 ds2=data('./data/test.csv')
+
+def convert_dtypes(df):
+    """Method to convert datatypes of the columns from python dtypes to sql dtypes
+
+    Parameters
+    ----------
+    df : dataframe 
+
+    Returns
+    -------
+        types: String with coverted datatypes of different columns from python to sql datatypes
+        placeholders : no. of place holders for no. of columns to insert values 
+    """
+    types = ""
+    for i, col_dtypes in enumerate(df.dtypes):
+        
+        col_name = df.columns[i]
+        col_name = col_name.replace('.','_')
+        
+        if col_dtypes == 'object':
+            types = types + f"{col_name} VARCHAR(255), "
+        elif col_dtypes == 'float64':
+            types = types +f"{col_name} FLOAT, "
+    
+    print(types)
+    
+    placeholders = ', '.join(len(df.columns)*['%s'])
+    print(placeholders)
+    return types, placeholders
+
+types, placeholders = convert_dtypes(df)
+
+total = 0
+for _, row in df.iterrows():
+    sql = f"INSERT INTO customers VALUES ({placeholders})"
+    val = tuple(row)
+    # print(val)
+    cr.execute(sql, val)
+    if cr.rowcount == 1:
+        total += 1
+con.commit() 
