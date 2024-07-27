@@ -16,3 +16,13 @@ table(cr,'INVENTORY','customer')
 
 
 #Insert Values in table Customers
+types, placeholders = convert_dtypes(df)
+
+total = 0
+for _, row in df.iterrows():
+    sql = f"INSERT INTO customers VALUES ({placeholders})"
+    val = tuple(row)
+    cr.execute(sql, val)
+    if cr.rowcount == 1:
+        total += 1
+con.commit() 
