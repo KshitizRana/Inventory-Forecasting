@@ -66,7 +66,7 @@ def database(cr:str, dbname:str) -> List[Tuple[str]]:
     return databases
 
 
-def table(cr, dbname:str, tbname: str) -> None:
+def table(cr, dbname:str, tbname: str,col_name: str) -> None:
     """ Method to perform table related operation using mysql query
 
     Parameters
@@ -85,7 +85,7 @@ def table(cr, dbname:str, tbname: str) -> None:
     logger.info("Table Dropped name=%s",tbname)
     
     #Create Table
-    cr.execute(f'CREATE Table {tbname} (name VARCHAR(50), membership VARCHAR(50));')
+    cr.execute(f'CREATE Table {tbname} ({col_name});')
     logger.info('Table Created')
 
 

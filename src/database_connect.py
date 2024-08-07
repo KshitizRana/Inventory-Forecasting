@@ -1,6 +1,6 @@
 import argparse
 
-from src.utils import convert_dtypes, data, database, dbconnect, table
+from utils import convert_dtypes, data, database, dbconnect, table
 
 parser = argparse.ArgumentParser(
     description = 'Database script toconnect to mysql server, create database, table and insert data to the table.'
@@ -16,26 +16,27 @@ args = parser.parse_args()
 #Connection to database
 db,cr = dbconnect('localhost','root')
 
-args={
-    'database_name':'INVENTORY',
-    'table_name':'customers',
-    'file_path':'data/sales.csv'
-}
+# args={
+#     'database_name':'INVENTORY',
+#     'table_name':'customers',
+#     'file_path':'data/sales.csv'
+# }
 
 #Create Database 
 if args.create_db:
-    databases = database(cr=cr,dbname=args['database_name'])
+    databases = database(cr=cr,dbname=args.database_name)
 else:
-    #Creating table  
-    table(cr=cr,dbname=args['database_name'],tbname=args['table_name'])
-
     #Insert Values in table Customers
-    file_df = data(filepath=args['file_path'])
+    file_df = data(filepath=args.file_path)
     types, placeholders = convert_dtypes(file_df)
+    
+    #Creating table  
+    table(cr=cr,dbname=args.database_name,tbname=args.table_name,col_name= types)
+
     
     total = 0
     for _, row in file_df.iterrows():
-        sql = f"INSERT INTO {args['table_name']} VALUES ({placeholders})"
+        sql = f"INSERT INTO {args.table_name} VALUES ({placeholders})"
         # val = tuple(row)
         # print(val)
         cr.execute(sql, tuple(row))
