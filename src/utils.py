@@ -1,3 +1,4 @@
+import logging
 import os
 from typing import List, Tuple
 
@@ -6,6 +7,9 @@ import pandas as pd
 from dotenv import load_dotenv
 
 load_dotenv(".env")
+logger = logging.getLogger(__name__)
+logging.basicConfig(filename='logfile.log',format="{asctime} - {levelname} - {message}", style="{", datefmt="%Y-%m-%d %H:%M:%S",level=logging.INFO)
+
 
 def dbconnect(hostname: str,
               username: str,
@@ -28,13 +32,15 @@ def dbconnect(hostname: str,
                                   password = os.getenv("PASSWORD"),
                                   database = dbname)
 
+    
     cr = con.cursor()
-    print('Connection Stablished')
+    logger.info('Connected to the server.')
+    
     return con, cr
 
 
 def database(cr:str, dbname:str) -> List[Tuple[str]]: 
-    """ Method to create databse using m VALUES(%s,%s)ysql query
+    """ Method to create databse using m VALUES(%s,%s) mysql query
     
     Parameters
     ----------
@@ -42,11 +48,12 @@ def database(cr:str, dbname:str) -> List[Tuple[str]]:
     dbname: the name of the database to create.
     
     Returns
-        Returns All databases from the mysql-server
+        Returns All databases from the mysql-server.
     """
 
     #Drop Database 
     cr.execute(f'DROP DATABASE IF EXISTS {dbname};')
+    logger.info('Database Dropped')
     
     #Create Database 
     cr.execute(f'CREATE DATABASE {dbname};')
@@ -54,6 +61,8 @@ def database(cr:str, dbname:str) -> List[Tuple[str]]:
     #Show all databases on the mysql-server
     cr.execute('SHOW DATABASES')
     databases = cr.fetchall()
+    logger.info(f'Database Created {dbname}, {databases}')
+    
     return databases
 
 
@@ -69,12 +78,15 @@ def table(cr, dbname:str, tbname: str) -> None:
     
     #Use database
     cr.execute(f'USE {dbname}')
+    logger.info(f'{dbname} database selected.')
     
     #Drop Table# load_dotenv(".env")
     cr.execute(f'DROP TABLE IF EXISTS {tbname}')
+    logger.info("Table Dropped name=%s",tbname)
     
     #Create Table
     cr.execute(f'CREATE Table {tbname} (name VARCHAR(50), membership VARCHAR(50));')
+    logger.info('Table Created')
 
 
 def insert_table(cr,con,query,val) :
@@ -95,8 +107,23 @@ def insert_table(cr,con,query,val) :
 
 
 def data(filepath):
+    """ Method to remove Unnamed: 0 Column.
+
+    Parameters
+    ----------
+    filepath : Path of the file
+
+    Returns
+    -------
+    Data Frame removed with Unamed: 0 Column
+    
+    """
     df = pd.read_csv(filepath)
+    logger.info('Data Frame Created')
+    
     df.drop(['Unnamed: 0'],axis=1,inplace=True,errors='ignore')
+    logger.info('Unnamed: 0 Column Dropped')
+    
     return df
 
 
@@ -122,7 +149,12 @@ def convert_dtypes(df):
             types = types + f"{col_name} VARCHAR(255), "
         elif col_dtypes == 'float64':
             types = types +f"{col_name} FLOAT, "
+        elif col_dtypes == 'int64':
+            types = types +f"{col_name} INT, "
+        
             
     types = types[:-2]
     placeholders = ', '.join(len(df.columns)*['%s'])
+    logger.info('Datatypes converted from python to mysql.')
+    
     return types, placeholders
