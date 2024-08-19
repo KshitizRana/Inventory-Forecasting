@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(filename='logfile.log',format="{asctime} - {levelname} - {message}", style="{", datefmt="%Y-%m-%d %H:%M:%S",level=logging.INFO)
 
 
-def aws_auth(rname: str):
+def aws_auth():
     """ Method to connect to AWS S3.
     
     Parameters
@@ -28,8 +28,7 @@ def aws_auth(rname: str):
     
     s3 = boto3.client('s3',
                         aws_access_key_id= os.getenv('AWS_ACCESS_KEY_ID'),
-                        aws_secret_access_key = os.getenv('AWS_SECRET_ACCESS_KEY'),
-                        region_name = rname)
+                        aws_secret_access_key = os.getenv('AWS_SECRET_ACCESS_KEY'))
     
     logger.info("Connected to AWS S3")
     return s3
@@ -167,7 +166,7 @@ def convert_dtypes(df):
     return types, placeholders
 
 
-def upload_to_s3(s3,file: str, bucket_name: str, object_name: str):
+def upload_to_s3(df: pd.DataFrame, bucket_name: str, file_name: str):
     """_Method to upload files to s3 bucket.
 
     Parameters
@@ -177,13 +176,15 @@ def upload_to_s3(s3,file: str, bucket_name: str, object_name: str):
     bucket_name : Bucket name where file to be uploaded.
     object_name : Key to the file to identify in bucket.
     """
-    # Bucket = 'dtop-project'
-    s3.Client.upload_file(file, bucket_name, object_name)
-    # s3.Bucket(bucket_name).upload_file(file, object_name)
-    logger.info(f'{file} uploaded Successfully in {bucket_name} with key {object_name}')
+    s3 = aws_auth()
+    csv_data = df.to_csv(index = False)
+    s3.put_object(Body = csv_data,
+                  Bucket = bucket_name,
+                  Key = f'{file_name}.csv')
+    logger.info(f'Successfully Uploaded data in {bucket_name} as {file_name}')
     
 
-def download_from_s3(s3,bucket,key_name,file_name):
+def download_from_s3(bucket,key_name,file_name):
     """Method to download file from AWS S3
 
     Parameters
@@ -193,21 +194,8 @@ def download_from_s3(s3,bucket,key_name,file_name):
     key_name : The name of the key to download from.
     file_name : The name to the file to download
     """
-    s3.download_file(bucket,key_name,file_name)
-    logger.info(f'{file_name} downloaded from the {bucket}')
+    s3 = aws_auth()
+    s3.get_object(bucket,key_name,file_name)
+    logger.info(f'Successfully ')   
     
-def convert_timestamp_to_hourly(df: pd.DataFrame = None, column: str = None) -> pd.DataFrame:
-    """
-    Convert timestamp to hourly level
-
-    Args:
-        df (pd.DataFrame, optional): Input dataframe. Defaults to None.
-        column (str, optional): Column related to datetime data. Defaults to None.
-
-    Returns:
-        DataFrame: resultant dataframe with hourly timestamps.
-    """
-    dummy = df.copy()
-    dummy[column] = pd.to_datetime(dummy[column], format='%Y-%m-%d %H:%M:%S')  # String to datetime datatype conversion
-    dummy[column] = dummy[column].dt.floor('h')  # Truncate timestamps to beginning of hour
-    return dummy
+    
