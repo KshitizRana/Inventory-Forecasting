@@ -195,7 +195,10 @@ def download_from_s3(bucket,key_name,file_name):
     file_name : The name to the file to download
     """
     s3 = aws_auth()
-    s3.get_object(bucket,key_name,file_name)
-    logger.info(f'Successfully ')   
+    response = s3.get_object(bucket,key_name,file_name)
+    df = pd.read_csv(response['Body'])
+    logger.info(f'Successfully Downloaded data from {bucket} as {file_name}')   
+    
+    return df
     
     

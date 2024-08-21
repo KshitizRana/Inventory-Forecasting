@@ -1,6 +1,6 @@
 import argparse
 
-from utils import convert_dtypes, data, database, dbconnect, table, aws_auth, upload_to_s3, download_from_s3
+from utils import convert_dtypes, data, database, dbconnect, table
 
 parser = argparse.ArgumentParser(
     description = 'Database script to connect to mysql server, create database, table and insert data to the table.'

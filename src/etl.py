@@ -1,5 +1,6 @@
 import pandas as pd
 
+from utils import data
 
 # Convert timestamp to hourly level
 def convert_timestamp_to_hourly(df: pd.DataFrame = None, column: str = None) -> pd.DataFrame:
@@ -20,7 +21,7 @@ def convert_timestamp_to_hourly(df: pd.DataFrame = None, column: str = None) -> 
     
 
 # Aggregate data
-sales_df = convert_timestamp_to_hourly(pd.read_csv('data/sales.csv'),'timestamp')
+sales_df = convert_timestamp_to_hourly(data('data/sales.csv'),'timestamp')
 salesagg_df = sales_df.groupby(by=['timestamp','product_id']).agg({'quantity' : 'sum'}).reset_index()
 salesagg_df.to_csv('data/sales_agg.csv',index=False)
 
