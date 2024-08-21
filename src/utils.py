@@ -2,6 +2,7 @@ import logging
 import os
 from typing import List, Tuple
 
+import boto3
 import mysql.connector
 import pandas as pd
 from dotenv import load_dotenv
@@ -11,6 +12,28 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(filename='logfile.log',format="{asctime} - {levelname} - {message}", style="{", datefmt="%Y-%m-%d %H:%M:%S",level=logging.INFO)
 
 
+def aws_auth():
+    """ Method to connect to AWS S3.
+    
+    Parameters
+    ----------
+    akeys : (str) Acess Keys.
+    skeys : (str) Secret Keys.
+    rname : (str) Give region name.
+
+    Returns
+    -------
+        Returns client connected with AWS boto3 client.
+    """
+    
+    s3 = boto3.client('s3',
+                        aws_access_key_id= os.getenv('AWS_ACCESS_KEY_ID'),
+                        aws_secret_access_key = os.getenv('AWS_SECRET_ACCESS_KEY'))
+    
+    logger.info("Connected to AWS S3")
+    return s3
+    
+    
 def dbconnect(hostname: str,
               username: str,
               dbname:str = None)-> Tuple[str,str]: 
@@ -89,23 +112,6 @@ def table(cr, dbname:str, tbname: str,col_name: str) -> None:
     logger.info('Table Created')
 
 
-def insert_table(cr,con,query,val) :
-    """ Method to insert into table 
-
-    Parameters
-    ----------
-    cr : cursor.
-    con : databse connection to fetch and commit to mysql-server.
-    query : query related to insertion of values in table .
-    val : data to be inserted in the table .
-    """
-    
-    # Insert Values
-    cr.executemany(query,val)
-    con.commit()
-    print(cr.rowcount,"was inserted.")
-
-
 def data(filepath):
     """ Method to remove Unnamed: 0 Column.
 
@@ -158,3 +164,41 @@ def convert_dtypes(df):
     logger.info('Datatypes converted from python to mysql.')
     
     return types, placeholders
+
+
+def upload_to_s3(df: pd.DataFrame, bucket_name: str, file_name: str):
+    """_Method to upload files to s3 bucket.
+
+    Parameters
+    ----------
+    s3 : Connection to bucket.
+    file : Filepath for file to be uploaded to bucket.
+    bucket_name : Bucket name where file to be uploaded.
+    object_name : Key to the file to identify in bucket.
+    """
+    s3 = aws_auth()
+    csv_data = df.to_csv(index = False)
+    s3.put_object(Body = csv_data,
+                  Bucket = bucket_name,
+                  Key = f'{file_name}.csv')
+    logger.info(f'Successfully Uploaded data in {bucket_name} as {file_name}')
+    
+
+def download_from_s3(bucket,key_name,file_name):
+    """Method to download file from AWS S3
+
+    Parameters
+    ----------
+    s3 : 
+    bucket : Name of bucket to download from.
+    key_name : The name of the key to download from.
+    file_name : The name to the file to download
+    """
+    s3 = aws_auth()
+    response = s3.get_object(bucket,key_name,file_name)
+    df = pd.read_csv(response['Body'])
+    logger.info(f'Successfully Downloaded data from {bucket} as {file_name}')   
+    
+    return df
+    
+    
