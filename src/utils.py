@@ -2,10 +2,12 @@ import logging
 import os
 from typing import List, Tuple
 
+import gspread
 import boto3
 import mysql.connector
 import pandas as pd
 from dotenv import load_dotenv
+from oauth2client.service_account import ServiceAccountCredentials
 
 load_dotenv(".env")
 logger = logging.getLogger(__name__)
@@ -74,7 +76,6 @@ def database(cr:str, dbname:str) -> List[Tuple[str]]:
         Returns All databases from the mysql-server.
     """
 
-    #Drop Database 
     cr.execute(f'DROP DATABASE IF EXISTS {dbname};')
     logger.info('Database Dropped')
     
@@ -200,5 +201,70 @@ def download_from_s3(bucket,key_name,file_name):
     logger.info(f'Successfully Downloaded data from {bucket} as {file_name}')   
     
     return df
+
+def gcp(df,spreadsheet_id,worksheet_name):
+    """_summary_
+
+    Parameters
+    ----------
+    df : 
+    spreadsheet_id :
+    worksheet_name : 
+
+    Returns
+    -------
     
+    """
     
+    type = "service_account"
+    auth_uri = "https://accounts.google.com/o/oauth2/auth"
+    token_uri = "https://oauth2.googleapis.com/token"
+    auth_provider_x509_cert_url = "https://www.googleapis.com/oauth2/v1/certs"
+    project_id = "data-science-project-432812"
+    private_key_id = os.getenv("PRIVATE_KEY_ID")
+    private_key = os.getenv("PRIVATE_KEY") #.replace("\\n", "\n")
+    client_email = os.getenv("CLIENT_EMAIL")
+    client_id = os.getenv("CLIENT_ID")
+    client_x509_cert_url = os.getenv("CLIENT_X509_CERT_URL")
+    
+    SCOPES = [
+        "https://spreadsheets.google.com/feeds",
+        'https://www.googleapis.com/auth/spreadsheets',
+        "https://www.googleapis.com/auth/drive.file",
+        "https://www.googleapis.com/auth/drive"
+    ]
+
+    credentials = ServiceAccountCredentials.from_json_keyfile_dict({
+        "type": type,
+        "project_id": project_id,
+        "private_key_id": private_key_id,
+        "private_key": private_key,
+        "client_email": client_email,
+        "client_id": client_id,
+        "auth_uri": auth_uri,
+        "token_uri": token_uri,
+        "auth_provider_x509_cert_url": auth_provider_x509_cert_url,
+        "client_x509_cert_url": client_x509_cert_url,
+    }, scopes=SCOPES)
+
+    # auth
+    gc = gspread.authorize(credentials)
+
+    # Open the worksheet
+    try:
+        worksheet = gc.open_by_key(spreadsheet_id).worksheet(worksheet_name)
+    except gspread.exceptions.WorksheetNotFound:
+        worksheet = gc.open_by_key(spreadsheet_id).add_worksheet(worksheet_name, 1, 1)
+
+    # Clear the existing content in the worksheet
+    worksheet.clear()
+
+    # Convert Timestamp columns to string format
+    df = df.astype(str)
+
+    # Write the DataFrame to the worksheet
+    cell_list = worksheet.update([df.columns.values.tolist()] + df.values.tolist())
+    if cell_list:
+        return True
+    else:
+        return False
