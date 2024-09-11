@@ -27,9 +27,15 @@ salesagg_df.to_csv('data/sales_agg.csv',index=False)
 
 stocklevel_df = convert_timestamp_to_hourly(pd.read_csv('data/sensor_stock_levels.csv'),'timestamp')
 stocklevel_df = stocklevel_df.groupby(by=['timestamp','product_id']).agg({'estimated_stock_pct' : 'mean'}).reset_index()
+# extract additional columns from sales data
+product_categories = df1[['product_id', 'category']].drop_duplicates()
+product_price = df1[['product_id', 'unit_price']].drop_duplicates()
+
+# combine with stock data
+merged_df = stocklevel_df.merge(product_categories, on="product_id", how="left")
+stocklevel_df = merged_df.merge(product_price, on="product_id", how="left")
 stocklevel_df.to_csv('data/sensor_stock_level_agg.csv')
 
 stocktemp_df = convert_timestamp_to_hourly(pd.read_csv('data/sensor_storage_temperature.csv'),'timestamp')
 stocktemp_df = stocktemp_df.groupby(by=['timestamp']).agg({'temperature' : 'mean'}).reset_index()
 stocktemp_df.to_csv('data/sensor_stock_temperature_agg.csv',index=False)
-
