@@ -3,7 +3,7 @@ from pathlib import Path
 import mysql.connector as mysql
 import pandas as pd
 
-from src.utils import connector
+from src.utils import dbconnect, upload_to_s3,download_from_s3
 
 
 def execute_sql_from_file(file_path: str) -> pd.DataFrame:
@@ -19,7 +19,7 @@ def execute_sql_from_file(file_path: str) -> pd.DataFrame:
     Raises:
         mysql.Error: If there is an error executing the SQL queries.
     """
-    cnx, cur = dbconnect('localhost','root', dbname='processed_inventory_data')
+    cnx, cur = dbconnect('localhost','root', dbname='Agg_store')
     with open(file_path, 'r') as sql_file:
         sql = sql_file.read()
     try:
@@ -38,7 +38,7 @@ def process():
     Execute SQL script to join tables, load data into a Pandas DataFrame, 
     and upload the resulting DataFrame to an S3 bucket.
     """
-    sql_script = Path('src/forecast_extraction.sql')
+    sql_script = 'src/forecasting_data.sql'
     df = execute_sql_from_file(sql_script)
+    upload_to_s3(df = df, bucket_name = 'inventory-agg-data', file_name = 'Inventory_historical_data')
     return df
-  

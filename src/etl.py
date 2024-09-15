@@ -31,8 +31,8 @@ sales_agg_merged.to_csv('data/sales_agg.csv',index=False)
 stocklevel_df = convert_timestamp_to_hourly(data('data/sensor_stock_levels.csv'),'timestamp')
 stocklevel_df = stocklevel_df.groupby(by=['timestamp','product_id']).agg({'estimated_stock_pct' : 'mean'}).reset_index()
 # extract additional columns from sales data
-product_categories = df1[['product_id', 'category']].drop_duplicates()
-product_price = df1[['product_id', 'unit_price']].drop_duplicates()
+product_categories = sales_df[['product_id', 'category']].drop_duplicates()
+product_price = sales_df[['product_id', 'unit_price']].drop_duplicates()
 
 # combine with stock data
 merged_df = stocklevel_df.merge(product_categories, on="product_id", how="left")

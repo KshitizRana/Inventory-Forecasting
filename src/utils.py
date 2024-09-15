@@ -15,7 +15,7 @@ logging.basicConfig(filename='logfile.log',format="{asctime} - {levelname} - {me
 
 
 def aws_auth():
-    """ Method to connect to AWS S3.
+    """ Function to connect to AWS S3.
     
     Parameters
     ----------
@@ -40,7 +40,7 @@ def dbconnect(hostname: str,
               username: str,
               dbname:str = None)-> Tuple[str,str]: 
     """
-    Method to connect database and python Script
+    Function to connect database and python Script
     
     Parameters
     ----------
@@ -65,7 +65,7 @@ def dbconnect(hostname: str,
 
 
 def database(cr:str, dbname:str) -> List[Tuple[str]]: 
-    """ Method to create databse using m VALUES(%s,%s) mysql query
+    """ Function to create databse using m VALUES(%s,%s) mysql query
     
     Parameters
     ----------
@@ -91,7 +91,7 @@ def database(cr:str, dbname:str) -> List[Tuple[str]]:
 
 
 def table(cr, dbname:str, tbname: str,col_name: str) -> None:
-    """ Method to perform table related operation using mysql query
+    """ Function to perform table related operation using mysql query
 
     Parameters
     ----------
@@ -114,7 +114,7 @@ def table(cr, dbname:str, tbname: str,col_name: str) -> None:
 
 
 def data(filepath):
-    """ Method to remove Unnamed: 0 Column.
+    """ Function to remove Unnamed: 0 Column.
 
     Parameters
     ----------
@@ -135,7 +135,7 @@ def data(filepath):
 
 
 def convert_dtypes(df):
-    """Method to convert datatypes of the columns from python dtypes to sql dtypes
+    """Function to convert datatypes of the columns from python dtypes to sql dtypes
 
     Parameters
     ----------
@@ -168,7 +168,7 @@ def convert_dtypes(df):
 
 
 def upload_to_s3(df: pd.DataFrame, bucket_name: str, file_name: str):
-    """_Method to upload files to s3 bucket.
+    """_Function to upload files to s3 bucket.
 
     Parameters
     ----------
@@ -185,8 +185,8 @@ def upload_to_s3(df: pd.DataFrame, bucket_name: str, file_name: str):
     logger.info(f'Successfully Uploaded data in {bucket_name} as {file_name}')
     
 
-def download_from_s3(bucket,key_name,file_name):
-    """Method to download file from AWS S3
+def download_from_s3(bucket,key_name):
+    """Function to download file from AWS S3
 
     Parameters
     ----------
@@ -196,11 +196,12 @@ def download_from_s3(bucket,key_name,file_name):
     file_name : The name to the file to download
     """
     s3 = aws_auth()
-    response = s3.get_object(bucket,key_name,file_name)
+    response = s3.get_object(Bucket = bucket,Key = key_name)
     df = pd.read_csv(response['Body'])
-    logger.info(f'Successfully Downloaded data from {bucket} as {file_name}')   
+    logger.info(f'Successfully Downloaded data from {bucket} as {key_name}')   
     
     return df
+
 
 def gcp(df,spreadsheet_id,worksheet_name):
     """_summary_

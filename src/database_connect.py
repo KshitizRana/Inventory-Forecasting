@@ -1,6 +1,6 @@
 import argparse
 
-from utils import convert_dtypes, data, database, dbconnect, table
+from src.utils import convert_dtypes, data, database, dbconnect, table,download_from_s3,upload_to_s3
 
 parser = argparse.ArgumentParser(
     description = 'Database script to connect to mysql server, create database, table and insert data to the table.'
@@ -46,7 +46,8 @@ else:
        
 
 # Upload file to the bucket.
-# upload_to_s3('data/test.csv','dtop-project','test.csv')
+upload_to_s3('data/test.csv','dtop-project','test.csv')
 
 # Download file from the bucket
 # download_from_s3('dtop-project','test.csv','data/test2.csv')
+download_from_s3(Bucket='inventory-agg-data', Key= 'Inventory_historical_data.csv', Filename = 'data/historical_data.csv')

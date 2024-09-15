@@ -9,3 +9,5 @@ s3fs
 gspread
 oauth2client
 google-api-python-client
+scikit-learn
+xgboost
