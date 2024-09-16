@@ -139,7 +139,6 @@ def process():
   """
   # step 1
   s3_df = download_from_s3(bucket='inventory-agg-data', key_name = 'Inventory_historical_data.csv')
-  s3_df["is_forecast"] = False
   
   # step 2
   df_feat = feature_engg(s3_df)

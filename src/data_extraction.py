@@ -38,7 +38,7 @@ def process():
     Execute SQL script to join tables, load data into a Pandas DataFrame, 
     and upload the resulting DataFrame to an S3 bucket.
     """
-    sql_script = 'src/forecasting_data.sql'
+    sql_script = Path('src/forecasting_data.sql')
     df = execute_sql_from_file(sql_script)
     df['is_forecast'] = False
     upload_to_s3(df = df, bucket_name = 'inventory-agg-data', file_name = 'Inventory_historical_data')
