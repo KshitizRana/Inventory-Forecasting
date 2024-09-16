@@ -1,139 +1,164 @@
-# create the following functions as instructed. Do not forget to follow best practices: add type hints, docstrings as required
-
-# function 01: feature engineering -> return data
-# read s3 data
 import numpy as np
 import pandas as pd
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import mean_squared_error
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
 
-from src.utils import download_from_s3,gcp
+from utils import convert_timestamp_to_hourly, download_from_s3, gcp
+
 
 def feature_engg(data):
   """
+  Performs feature engineering on the input dataset, including date extraction, categorical encoding, and filtering.
+  Parameters
+  ----------
+  data : The input dataset containing a 'category' column, a 'timestamp' column, and other relevant features.
   
   Returns
   -------
- 
+  The transformed data with the following changes:
+        - Rows with 'category' equal to 'spices and herbs' are removed.
+        - The 'timestamp' column is converted to datetime format, and additional columns 'day', 'month', and 'year' are created based on the 'timestamp'.
+        - The 'category' column is one-hot encoded (excluding the first category to avoid multicollinearity).
+        - Missing values in the dataset are filled with 0.
   """
-  data =  data[data['category'].isin(['spices and herbs'])]
-  df = data.copy()
+  data =  data[~data['category'].isin(['spices and herbs'])]
+  # Convert 'timestamp' to datetime format
   data['timestamp'] = pd.to_datetime(data['timestamp'])
+  
+  # Create new features: 'day', 'month', 'year'
   data['day'] = data['timestamp'].dt.day
   data['month'] = data['timestamp'].dt.month
   data['year'] = data['timestamp'].dt.year
+  
+  # Create dummy variables for 'category' column
   data = pd.get_dummies(data, columns=['category'], drop_first=True)
   
-  return data
-
-# create a copy to be used later
-
-# Convert 'timestamp' to datetime format
-
-# Create new features: 'day', 'month', 'year'
-
-# Create dummy variables for 'category' column
+  return data.fillna(0)
 
 
-
-# function 02: split data -> return X_train, X_test, y_train, y_test
-from sklearn.model_selection import train_test_split
 def split_data(data):
-  """_summary_
+  """
+  Splits the input data into training and testing sets for model development, excluding certain columns.
+  Parameters
+  ----------
+  data : The input dataset containing features and target variables
 
   Returns
   -------
- 
+  X_train : Training set features.
+    
+    X_test : Testing set features.
+    
+    y_train : Training set target variable ('estimated_stock_pct').
+    
+    y_test : Testing set target variable ('estimated_stock_pct').
   """
+  # Define target and features
   X = data.drop(columns=['estimated_stock_pct', 'timestamp', 'product_id'])
   y = data['estimated_stock_pct']
-  X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-  return X_train, X_test, y_train, y_test
   
-# Define target and features
-
-# Split data into train and test sets
-
-
-# function 03: Build xgboost model -> return preds & print rmse
-import xgboost as xgb
-from sklearn.metrics import mean_squared_error
+  # Split data into train and test sets
+  X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+  
+  return X_train, X_test, y_train, y_test
 
 
-def xgboost_mod(X_train, X_test, y_train, y_test):
-  xgboost_model = xgb.XGBRegressor(objective='reg:squarederror', n_estimators=100, learning_rate=0.05, max_depth=6)
-  xgboost_model.fit(X_train, y_train)
-  y_pred = xgboost_model.predict(X_test)
+def rf_mod(X_train, X_test, y_train, y_test):
+  """Trains a Random Forest Regressor model on the provided training data, scales the features, and evaluates the model using RMSE on the test set.
+
+  Parameters
+  ----------
+  X_train : The training input samples.
+  X_test : The testing input samples for which predictions are made.
+  y_train : The target values for training the model.
+  y_test : The target values for evaluating the model's predictions.
+
+  Returns
+  -------
+  The trained Random Forest model.
+  The fitted StandardScaler used to transform the data.
+  Predicted target values for the test set.
+  """
+  rf_model = RandomForestRegressor(n_estimators=100, random_state=42)
+
+  scaler = StandardScaler()
+  X_train_scaled = scaler.fit_transform(X_train)
+  X_test_scaled = scaler.transform(X_test)
+
+  rf_model.fit(X_train_scaled, y_train)
+
+  # Make predictions on the test set
+  y_pred = rf_model.predict(X_test_scaled)
   rmse = np.sqrt(mean_squared_error(y_test, y_pred)) #or use mae
   print(f"RMSE: {rmse}")
-  return y_pred
-   
-# Initialize XGBoost regressor
+  
+  return rf_model, scaler, y_pred
 
-# Train the model
-
-# Predictions on the test set
-
-# Evaluate the model
-
-
-
-
-# function 04: forecast for next 3 months -> return forecasts
-# Generate future dates (e.g., for 3 months)
 
 def forecast_for_three_months(data):
+  """
+  Function to forecast for the next three months on the hourly basis .
+  Parameters
+  ----------
+  data : The historical data required to forecast.
+
+  Returns
+  -------
+  Returns forecasted data after applying the RandomForestRegressor Model.
+  """
+  # Generate future dates (e.g., for 3 months)
   future_dates = pd.date_range(start=data['timestamp'].max(), periods=90, freq='D')
   future_data = pd.DataFrame(future_dates, columns=['timestamp'])
+  future_data['timestamp'] = convert_timestamp_to_hourly(future_data,'timestamp') #conveting to hourly basis
+  
+  # Assuming the product ID, unit_price, and temperature remain consistent, use the median or mode from historical data
   future_data['product_id'] = data['product_id']
   future_data['unit_price'] = data['unit_price']
   future_data['quantity'] = 0  # Assuming no future sales
   future_data['temperature'] = data['temperature'].median()  # Adjust as needed
+  
+  # Add forecast flag
+  future_data['is_forecast'] = True
+  
+  # Create features for future data
   future_data['day'] = future_data['timestamp'].dt.day
   future_data['month'] = future_data['timestamp'].dt.month
   future_data['year'] = future_data['timestamp'].dt.year
+  
+  # Create dummy variables for 'category'
   future_data['category'] = data['category']
   future_data = pd.get_dummies(future_data, columns=['category'], drop_first=True)
-  future_data['is_forecast'] = True
-  
+
   return  future_data
 
-# Create a DataFrame for future data
 
-# Assuming the product ID, unit_price, and temperature remain consistent, use the median or mode from historical data
-
-# Create features for future data
-
-# Create dummy variables for 'category'
-
-# Predict estimated_stock_pct for the future data
-
-# Add forecast flag
-
-
-
-
-# function 05: to run all steps sequencially
 def process():
+  """Function Run whole script step by step
+  """
   # step 1
   s3_df = download_from_s3(bucket='inventory-agg-data', key_name = 'Inventory_historical_data.csv')
+  s3_df["is_forecast"] = False
+  
   # step 2
-  df_features = feature_engg(s3_df)
+  df_feat = feature_engg(s3_df)
+  
   # step 3
-  Xtrain, ytrain, xtest, ytest =split_data(df_features)
+  X_train, X_test, y_train, y_test =split_data(df_feat)
+  X_train.shape, X_test.shape, y_train.shape, y_test.shape
+  
   # step 4
-  y_pred = xgboost_mod(Xtrain, xtest, ytrain, ytest)
-  future_data = forecast_for_three_months(y_pred)
-  # and then
-  # Prepare the historical data
-  historical_data = s3_df[['timestamp', 'estimated_stock_pct', 'product_id', 'unit_price', 'quantity', 'temperature']]
-  # Add forecast flag to historical data
-  historical_data['is_forecast'] = False
-  
-  # Ensure historical and future data have the same columns
-  future_data = future_data[['timestamp', 'estimated_stock_pct', 'product_id', 'unit_price', 'quantity', 'temperature', 'is_forecast']]
-  
+  rf_model, scaler, y_pred = rf_mod(X_train, X_test, y_train, y_test)
+  future_data = forecast_for_three_months(s3_df)
+  forecast_pred = rf_model.predict(scaler.transform(future_data.drop(columns=['timestamp', 'product_id'])))
+  future_data['estimated_stock_pct'] = forecast_pred
+  columns = ['timestamp', 'estimated_stock_pct', 'product_id', 'unit_price', 'quantity', 'temperature', 'is_forecast']
+ 
   # Concatenate historical and future data
-  final_data = pd.concat([historical_data, future_data], ignore_index=True)
-  
+  final_data = pd.concat([s3_df[columns], future_data[columns]], ignore_index=True)
+ 
   gcp(final_data,'1vhmJcfz7DINZPha-y7TR4gB5pe-h_GwdFy-FfqIrUgk','Forecasting-data')
+  
   # Output final DataFrame for the dashboard
   print(final_data.head()) #-> upload to google sheet

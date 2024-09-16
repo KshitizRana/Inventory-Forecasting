@@ -3,7 +3,7 @@ from pathlib import Path
 import mysql.connector as mysql
 import pandas as pd
 
-from src.utils import dbconnect, upload_to_s3,download_from_s3
+from utils import dbconnect, upload_to_s3,download_from_s3
 
 
 def execute_sql_from_file(file_path: str) -> pd.DataFrame:
@@ -40,5 +40,6 @@ def process():
     """
     sql_script = 'src/forecasting_data.sql'
     df = execute_sql_from_file(sql_script)
+    df['is_forecast'] = False
     upload_to_s3(df = df, bucket_name = 'inventory-agg-data', file_name = 'Inventory_historical_data')
     return df
