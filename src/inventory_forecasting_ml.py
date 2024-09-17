@@ -34,7 +34,6 @@ def feature_engg(data):
   
   # Create dummy variables for 'category' column
   data = pd.get_dummies(data, columns=['category'], drop_first=True)
-  
   return data.fillna(0)
 
 
@@ -61,7 +60,6 @@ def split_data(data):
   
   # Split data into train and test sets
   X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-  
   return X_train, X_test, y_train, y_test
 
 
@@ -93,7 +91,6 @@ def rf_mod(X_train, X_test, y_train, y_test):
   y_pred = rf_model.predict(X_test_scaled)
   rmse = np.sqrt(mean_squared_error(y_test, y_pred)) #or use mae
   print(f"RMSE: {rmse}")
-  
   return rf_model, scaler, y_pred
 
 
@@ -130,7 +127,6 @@ def forecast_for_three_months(data):
   # Create dummy variables for 'category'
   future_data['category'] = data['category']
   future_data = pd.get_dummies(future_data, columns=['category'], drop_first=True)
-
   return  future_data
 
 
