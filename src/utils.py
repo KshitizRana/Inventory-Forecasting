@@ -2,10 +2,12 @@ import logging
 import os
 from typing import List, Tuple
 
+import gspread
 import boto3
 import mysql.connector
 import pandas as pd
 from dotenv import load_dotenv
+from oauth2client.service_account import ServiceAccountCredentials
 
 load_dotenv(".env")
 logger = logging.getLogger(__name__)
@@ -13,7 +15,7 @@ logging.basicConfig(filename='logfile.log',format="{asctime} - {levelname} - {me
 
 
 def aws_auth():
-    """ Method to connect to AWS S3.
+    """ Function to connect to AWS S3.
     
     Parameters
     ----------
@@ -38,7 +40,7 @@ def dbconnect(hostname: str,
               username: str,
               dbname:str = None)-> Tuple[str,str]: 
     """
-    Method to connect database and python Script
+    Function to connect database and python Script
     
     Parameters
     ----------
@@ -49,6 +51,7 @@ def dbconnect(hostname: str,
     Returns
         Returns Tuple(con,cr) connection and cursor
     """
+    
     
     con = mysql.connector.connect(host=hostname,
                                   user=username,
@@ -63,7 +66,7 @@ def dbconnect(hostname: str,
 
 
 def database(cr:str, dbname:str) -> List[Tuple[str]]: 
-    """ Method to create databse using m VALUES(%s,%s) mysql query
+    """ Function to create databse using m VALUES(%s,%s) mysql query
     
     Parameters
     ----------
@@ -74,7 +77,6 @@ def database(cr:str, dbname:str) -> List[Tuple[str]]:
         Returns All databases from the mysql-server.
     """
 
-    #Drop Database 
     cr.execute(f'DROP DATABASE IF EXISTS {dbname};')
     logger.info('Database Dropped')
     
@@ -89,8 +91,25 @@ def database(cr:str, dbname:str) -> List[Tuple[str]]:
     return databases
 
 
+def convert_timestamp_to_hourly(df: pd.DataFrame = None, column: str = None) -> pd.DataFrame:
+    """
+    Convert timestamp to hourly level
+
+    Args:
+        df (pd.DataFrame, optional): Input dataframe. Defaults to None.
+        column (str, optional): Column related to datetime data. Defaults to None.
+
+    Returns:
+        DataFrame: resultant dataframe with hourly timestamps.
+    """
+    dummy = df.copy()
+    dummy[column] = pd.to_datetime(dummy[column], format='%Y-%m-%d %H:%M:%S')  # String to datetime datatype conversion
+    dummy[column] = dummy[column].dt.floor('h')  # Truncate timestamps to beginning of hour
+    return dummy
+
+
 def table(cr, dbname:str, tbname: str,col_name: str) -> None:
-    """ Method to perform table related operation using mysql query
+    """ Function to perform table related operation using mysql query
 
     Parameters
     ----------
@@ -113,7 +132,7 @@ def table(cr, dbname:str, tbname: str,col_name: str) -> None:
 
 
 def data(filepath):
-    """ Method to remove Unnamed: 0 Column.
+    """ Function to remove Unnamed: 0 Column.
 
     Parameters
     ----------
@@ -134,7 +153,7 @@ def data(filepath):
 
 
 def convert_dtypes(df):
-    """Method to convert datatypes of the columns from python dtypes to sql dtypes
+    """Function to convert datatypes of the columns from python dtypes to sql dtypes
 
     Parameters
     ----------
@@ -167,7 +186,7 @@ def convert_dtypes(df):
 
 
 def upload_to_s3(df: pd.DataFrame, bucket_name: str, file_name: str):
-    """_Method to upload files to s3 bucket.
+    """_Function to upload files to s3 bucket.
 
     Parameters
     ----------
@@ -184,8 +203,8 @@ def upload_to_s3(df: pd.DataFrame, bucket_name: str, file_name: str):
     logger.info(f'Successfully Uploaded data in {bucket_name} as {file_name}')
     
 
-def download_from_s3(bucket,key_name,file_name):
-    """Method to download file from AWS S3
+def download_from_s3(bucket,key_name):
+    """Function to download file from AWS S3
 
     Parameters
     ----------
@@ -195,10 +214,76 @@ def download_from_s3(bucket,key_name,file_name):
     file_name : The name to the file to download
     """
     s3 = aws_auth()
-    response = s3.get_object(bucket,key_name,file_name)
+    response = s3.get_object(Bucket = bucket,Key = key_name)
     df = pd.read_csv(response['Body'])
-    logger.info(f'Successfully Downloaded data from {bucket} as {file_name}')   
+    logger.info(f'Successfully Downloaded data from {bucket} as {key_name}')   
     
     return df
+
+
+def gcp(df,spreadsheet_id,worksheet_name):
+    """_summary_
+
+    Parameters
+    ----------
+    df : 
+    spreadsheet_id :
+    worksheet_name : 
+
+    Returns
+    -------
     
+    """
     
+    type = "service_account"
+    auth_uri = "https://accounts.google.com/o/oauth2/auth"
+    token_uri = "https://oauth2.googleapis.com/token"
+    auth_provider_x509_cert_url = "https://www.googleapis.com/oauth2/v1/certs"
+    project_id = "data-science-project-432812"
+    private_key_id = os.getenv("PRIVATE_KEY_ID")
+    private_key = os.getenv("PRIVATE_KEY") #.replace("\\n", "\n")
+    client_email = os.getenv("CLIENT_EMAIL")
+    client_id = os.getenv("CLIENT_ID")
+    client_x509_cert_url = os.getenv("CLIENT_X509_CERT_URL")
+    
+    SCOPES = [
+        "https://spreadsheets.google.com/feeds",
+        'https://www.googleapis.com/auth/spreadsheets',
+        "https://www.googleapis.com/auth/drive.file",
+        "https://www.googleapis.com/auth/drive"
+    ]
+
+    credentials = ServiceAccountCredentials.from_json_keyfile_dict({
+        "type": type,
+        "project_id": project_id,
+        "private_key_id": private_key_id,
+        "private_key": private_key,
+        "client_email": client_email,
+        "client_id": client_id,
+        "auth_uri": auth_uri,
+        "token_uri": token_uri,
+        "auth_provider_x509_cert_url": auth_provider_x509_cert_url,
+        "client_x509_cert_url": client_x509_cert_url,
+    }, scopes=SCOPES)
+
+    # auth
+    gc = gspread.authorize(credentials)
+
+    # Open the worksheet
+    try:
+        worksheet = gc.open_by_key(spreadsheet_id).worksheet(worksheet_name)
+    except gspread.exceptions.WorksheetNotFound:
+        worksheet = gc.open_by_key(spreadsheet_id).add_worksheet(worksheet_name, 1, 1)
+
+    # Clear the existing content in the worksheet
+    worksheet.clear()
+
+    # Convert Timestamp columns to string format
+    df = df.astype(str)
+
+    # Write the DataFrame to the worksheet
+    cell_list = worksheet.update([df.columns.values.tolist()] + df.values.tolist())
+    if cell_list:
+        return True
+    else:
+        return False
