@@ -5,7 +5,7 @@ from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
-from utils import convert_timestamp_to_hourly, download_from_s3, gcp
+from src.utils import convert_timestamp_to_hourly, download_from_s3, gcp
 
 
 def feature_engg(data):
@@ -112,21 +112,16 @@ def forecast_for_three_months(data):
   
   # Assuming the product ID, unit_price, and temperature remain consistent, use the median or mode from historical data
   future_data['product_id'] = data['product_id']
-  future_data['unit_price'] = data['unit_price']
+  future_data = future_data.merge(data,how='inner',on='product_id')\
+                           .drop(['timestamp_y','estimated_stock_pct','temperature'],axis=1)\
+                            .rename(columns={'timestamp_x':'timestamp'})
+    
   future_data['quantity'] = 0  # Assuming no future sales
   future_data['temperature'] = data['temperature'].median()  # Adjust as needed
   
   # Add forecast flag
   future_data['is_forecast'] = True
   
-  # Create features for future data
-  future_data['day'] = future_data['timestamp'].dt.day
-  future_data['month'] = future_data['timestamp'].dt.month
-  future_data['year'] = future_data['timestamp'].dt.year
-  
-  # Create dummy variables for 'category'
-  future_data['category'] = data['category']
-  future_data = pd.get_dummies(future_data, columns=['category'], drop_first=True)
   return  future_data
 
 
@@ -146,14 +141,19 @@ def process():
   # step 4
   rf_model, scaler, y_pred = rf_mod(X_train, X_test, y_train, y_test)
   future_data = forecast_for_three_months(s3_df)
-  forecast_pred = rf_model.predict(scaler.transform(future_data.drop(columns=['timestamp', 'product_id'])))
+  future_data = feature_engg(future_data).drop(columns=['timestamp', 'product_id'])
+  forecast_pred = rf_model.predict(scaler.transform(future_data[X_train.columns]))
   future_data['estimated_stock_pct'] = forecast_pred
+  df_dum = pd.from_dummies(future_data.loc[:, ~future_data.columns.isin(['unit_price', 'quantity', 'is_forecast', 'temperature', 'day', 'month',
+       'year'])])
   columns = ['timestamp', 'estimated_stock_pct', 'product_id', 'unit_price', 'quantity', 'temperature', 'is_forecast']
  
   # Concatenate historical and future data
-  final_data = pd.concat([s3_df[columns], future_data[columns]], ignore_index=True)
+  final_data = pd.concat([s3_df[columns], future_data[columns]], ignore_index=True).fillna(0)
  
   gcp(final_data,'1vhmJcfz7DINZPha-y7TR4gB5pe-h_GwdFy-FfqIrUgk','Forecasting-data')
   
   # Output final DataFrame for the dashboard
   print(final_data.head()) #-> upload to google sheet
+  
+process()
