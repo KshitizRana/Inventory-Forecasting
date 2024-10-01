@@ -55,7 +55,7 @@ def split_data(data):
     y_test : Testing set target variable ('estimated_stock_pct').
   """
   # Define target and features
-  X = data.drop(columns=['estimated_stock_pct', 'timestamp', 'product_id'])
+  X = data.drop(columns=['estimated_stock_pct','timestamp', 'product_id'])
   y = data['estimated_stock_pct']
   
   # Split data into train and test sets
@@ -141,19 +141,16 @@ def process():
   # step 4
   rf_model, scaler, y_pred = rf_mod(X_train, X_test, y_train, y_test)
   future_data = forecast_for_three_months(s3_df)
-  future_data = feature_engg(future_data).drop(columns=['timestamp', 'product_id'])
+  future_data = feature_engg(future_data).drop(columns=['product_id','timestamp'])
   forecast_pred = rf_model.predict(scaler.transform(future_data[X_train.columns]))
   future_data['estimated_stock_pct'] = forecast_pred
-  df_dum = pd.from_dummies(future_data.loc[:, ~future_data.columns.isin(['unit_price', 'quantity', 'is_forecast', 'temperature', 'day', 'month',
-       'year'])])
-  columns = ['timestamp', 'estimated_stock_pct', 'product_id', 'unit_price', 'quantity', 'temperature', 'is_forecast']
- 
-  # Concatenate historical and future data
-  final_data = pd.concat([s3_df[columns], future_data[columns]], ignore_index=True).fillna(0)
- 
-  gcp(final_data,'1vhmJcfz7DINZPha-y7TR4gB5pe-h_GwdFy-FfqIrUgk','Forecasting-data')
+  final_data = pd.concat([df_feat.drop(columns=['timestamp','product_id']), future_data], ignore_index=True)
+
+  # cat_df = final_data[final_data.columns[pd.Series(final_data.columns).str.startswith('category_')]]
+  cat_df = final_data.filter(like='category_')
+  final_data['category'] = cat_df.idxmax(axis=1).str.replace('category_','')
+  final_df = final_data.drop(columns=cat_df.columns,axis=1).fillna(0)
   
-  # Output final DataFrame for the dashboard
-  print(final_data.head()) #-> upload to google sheet
+  gcp(final_df,'1vhmJcfz7DINZPha-y7TR4gB5pe-h_GwdFy-FfqIrUgk','Forecasting-data')
   
 process()
