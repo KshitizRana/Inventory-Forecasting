@@ -5,7 +5,7 @@ from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
-from src.utils import convert_timestamp_to_hourly, download_from_s3, gcp
+from utils import convert_timestamp_to_hourly, download_from_s3, gcp
 
 
 def feature_engg(data):
@@ -31,6 +31,7 @@ def feature_engg(data):
   data['day'] = data['timestamp'].dt.day
   data['month'] = data['timestamp'].dt.month
   data['year'] = data['timestamp'].dt.year
+  data['hour'] = data['timestamp'].dt.hour
   
   # Create dummy variables for 'category' column
   data = pd.get_dummies(data, columns=['category'], drop_first=True)
@@ -120,8 +121,7 @@ def forecast_for_three_months(data):
   future_data['temperature'] = data['temperature'].median()  # Adjust as needed
   
   # Add forecast flag
-  future_data['is_forecast'] = True
-  
+  future_data['is_forecast'] = True  
   return  future_data
 
 
@@ -149,6 +149,7 @@ def process():
   # cat_df = final_data[final_data.columns[pd.Series(final_data.columns).str.startswith('category_')]]
   cat_df = final_data.filter(like='category_')
   final_data['category'] = cat_df.idxmax(axis=1).str.replace('category_','')
+  final_data['timestamp'] = pd.to_datetime(final_data[['year','month','day','hour']])
   final_df = final_data.drop(columns=cat_df.columns,axis=1).fillna(0)
   
   gcp(final_df,'1vhmJcfz7DINZPha-y7TR4gB5pe-h_GwdFy-FfqIrUgk','Forecasting-data')

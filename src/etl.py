@@ -1,10 +1,7 @@
 import pandas as pd
 
-from utils import data, convert_timestamp_to_hourly
+from utils import convert_timestamp_to_hourly, data
 
-
-
-    
 # Aggregate data
 sales_df = convert_timestamp_to_hourly(data('data/sales.csv'),'timestamp')
 salesagg_df = sales_df.groupby(by=['timestamp','product_id']).agg({'quantity' : 'sum'}).reset_index()
