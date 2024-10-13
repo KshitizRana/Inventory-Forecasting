@@ -17,15 +17,15 @@ upload-to-database:
 cleaned-upload-to-database:
   import:
     - import:
-        dirpath: ./data/processed/
+        dirpath: ./data
         file_extension: csv 
         prefix_filename: sales_processed
     - import:
-        dirpath: ./data/processed/
+        dirpath: ./data
         file_extension: csv 
         prefix_filename: stock_processed
     - import:
-        dirpath: ./data/processed/
+        dirpath: ./data
         file_extension: csv 
         prefix_filename: temp_processed
 
