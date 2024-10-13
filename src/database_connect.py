@@ -1,7 +1,7 @@
 import argparse
 import yaml
 
-from utils import (convert_dtypes, data, database, dbconnect, download_from_s3,
+from utils import (convert_dtypes, get_data, database, dbconnect, download_from_s3,
                    table, upload_to_s3)
 
 parser = argparse.ArgumentParser(
@@ -31,7 +31,7 @@ else:
                     config_import[i]["import"]["file_extension"])
         table_name = os.path.basename(data).split('.')[0]
         #Insert Values in table Customers
-        file_df = data(filepath = data)
+        file_df = get_data(filepath = data)
         types, placeholders = convert_dtypes(file_df)
         
         #Creating table  
