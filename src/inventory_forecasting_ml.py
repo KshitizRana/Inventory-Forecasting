@@ -5,7 +5,7 @@ from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
-from utils import convert_timestamp_to_hourly, download_from_s3, gcp
+from src.utils import convert_timestamp_to_hourly, download_from_s3, gcp
 
 
 def feature_engg(data):
@@ -152,6 +152,4 @@ def process():
   final_data['timestamp'] = pd.to_datetime(final_data[['year','month','day','hour']])
   final_df = final_data.drop(columns=cat_df.columns,axis=1).fillna(0)
   
-  gcp(final_df,'1vhmJcfz7DINZPha-y7TR4gB5pe-h_GwdFy-FfqIrUgk','Forecasting-data')
-  
-process()
+  return final_df

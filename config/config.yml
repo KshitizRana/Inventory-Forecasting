@@ -3,30 +3,30 @@ upload-to-database:
   import:
     - import:
         dirpath: ./data
-        file_extension: csv 
+        file_extension: csv
         prefix_filename: sales
     - import:
         dirpath: ./data
-        file_extension: csv 
+        file_extension: csv
         prefix_filename: sensor_stock_levels
     - import:
         dirpath: ./data
-        file_extension: csv 
+        file_extension: csv
         prefix_filename: sensor_storage_temperature
 
 cleaned-upload-to-database:
   import:
     - import:
         dirpath: ./data
-        file_extension: csv 
+        file_extension: csv
         prefix_filename: sales_processed
     - import:
         dirpath: ./data
-        file_extension: csv 
+        file_extension: csv
         prefix_filename: stock_processed
     - import:
         dirpath: ./data
-        file_extension: csv 
+        file_extension: csv
         prefix_filename: temp_processed
 
 data_extraction:
@@ -36,7 +36,7 @@ data_extraction:
         bucket: inventory-agg-data
         filename: inventory_historical_data
 
-inventory_modeling_ml:
+inventory_forecasting_ml:
   export:
     - export:
         host: gsheet

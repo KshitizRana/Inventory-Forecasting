@@ -287,5 +287,5 @@ def process_task(task: str) -> dict:
     Returns:
         dict: processed_data
     """
-    lib = importlib.import_module(f"src.tools.{task}")
+    lib = importlib.import_module(f"src.{task}")
     return lib.process()

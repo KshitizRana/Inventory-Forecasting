@@ -16,3 +16,6 @@ python3 src/database_connect.py -cd True -db 'Agg_store'
 
 echo "\n.......Creating table & uploading data......."
 python3 src/database_connect.py -db 'Agg_store' -id "cleaned-upload-to-database"
+
+
+python3 main.py -t data_extraction
