@@ -2,15 +2,15 @@
 upload-to-database:
   import:
     - import:
-        dirpath: ./data/raw/
+        dirpath: ./data
         file_extension: csv 
         prefix_filename: sales
     - import:
-        dirpath: ./data/raw/
+        dirpath: ./data
         file_extension: csv 
         prefix_filename: sensor_stock_levels
     - import:
-        dirpath: ./data/raw/
+        dirpath: ./data
         file_extension: csv 
         prefix_filename: sensor_storage_temperature
 
