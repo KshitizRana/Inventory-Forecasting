@@ -31,6 +31,7 @@ def feature_engg(data):
   data['day'] = data['timestamp'].dt.day
   data['month'] = data['timestamp'].dt.month
   data['year'] = data['timestamp'].dt.year
+  data['hour'] = data['timestamp'].dt.hour
   
   # Create dummy variables for 'category' column
   data = pd.get_dummies(data, columns=['category'], drop_first=True)
@@ -55,7 +56,7 @@ def split_data(data):
     y_test : Testing set target variable ('estimated_stock_pct').
   """
   # Define target and features
-  X = data.drop(columns=['estimated_stock_pct', 'timestamp', 'product_id'])
+  X = data.drop(columns=['estimated_stock_pct','timestamp', 'product_id'])
   y = data['estimated_stock_pct']
   
   # Split data into train and test sets
@@ -112,21 +113,15 @@ def forecast_for_three_months(data):
   
   # Assuming the product ID, unit_price, and temperature remain consistent, use the median or mode from historical data
   future_data['product_id'] = data['product_id']
-  future_data['unit_price'] = data['unit_price']
+  future_data = future_data.merge(data,how='inner',on='product_id')\
+                           .drop(['timestamp_y','estimated_stock_pct','temperature'],axis=1)\
+                            .rename(columns={'timestamp_x':'timestamp'})
+    
   future_data['quantity'] = 0  # Assuming no future sales
   future_data['temperature'] = data['temperature'].median()  # Adjust as needed
   
   # Add forecast flag
-  future_data['is_forecast'] = True
-  
-  # Create features for future data
-  future_data['day'] = future_data['timestamp'].dt.day
-  future_data['month'] = future_data['timestamp'].dt.month
-  future_data['year'] = future_data['timestamp'].dt.year
-  
-  # Create dummy variables for 'category'
-  future_data['category'] = data['category']
-  future_data = pd.get_dummies(future_data, columns=['category'], drop_first=True)
+  future_data['is_forecast'] = True  
   return  future_data
 
 
@@ -146,14 +141,17 @@ def process():
   # step 4
   rf_model, scaler, y_pred = rf_mod(X_train, X_test, y_train, y_test)
   future_data = forecast_for_three_months(s3_df)
-  forecast_pred = rf_model.predict(scaler.transform(future_data.drop(columns=['timestamp', 'product_id'])))
+  future_data = feature_engg(future_data).drop(columns=['product_id','timestamp'])
+  forecast_pred = rf_model.predict(scaler.transform(future_data[X_train.columns]))
   future_data['estimated_stock_pct'] = forecast_pred
-  columns = ['timestamp', 'estimated_stock_pct', 'product_id', 'unit_price', 'quantity', 'temperature', 'is_forecast']
- 
-  # Concatenate historical and future data
-  final_data = pd.concat([s3_df[columns], future_data[columns]], ignore_index=True)
- 
-  gcp(final_data,'1vhmJcfz7DINZPha-y7TR4gB5pe-h_GwdFy-FfqIrUgk','Forecasting-data')
+  final_data = pd.concat([df_feat.drop(columns=['timestamp','product_id']), future_data], ignore_index=True)
+
+  # cat_df = final_data[final_data.columns[pd.Series(final_data.columns).str.startswith('category_')]]
+  cat_df = final_data.filter(like='category_')
+  final_data['category'] = cat_df.idxmax(axis=1).str.replace('category_','')
+  final_data['timestamp'] = pd.to_datetime(final_data[['year','month','day','hour']])
+  final_df = final_data.drop(columns=cat_df.columns,axis=1).fillna(0)
   
-  # Output final DataFrame for the dashboard
-  print(final_data.head()) #-> upload to google sheet
+  gcp(final_df,'1vhmJcfz7DINZPha-y7TR4gB5pe-h_GwdFy-FfqIrUgk','Forecasting-data')
+  
+process()

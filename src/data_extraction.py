@@ -3,7 +3,7 @@ from pathlib import Path
 import mysql.connector as mysql
 import pandas as pd
 
-from utils import dbconnect, upload_to_s3,download_from_s3
+from utils import dbconnect, download_from_s3, upload_to_s3
 
 
 def execute_sql_from_file(file_path: str) -> pd.DataFrame:

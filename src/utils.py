@@ -2,8 +2,8 @@ import logging
 import os
 from typing import List, Tuple
 
-import gspread
 import boto3
+import gspread
 import mysql.connector
 import pandas as pd
 from dotenv import load_dotenv
@@ -177,7 +177,6 @@ def convert_dtypes(df):
         elif col_dtypes == 'int64':
             types = types +f"{col_name} INT, "
         
-            
     types = types[:-2]
     placeholders = ', '.join(len(df.columns)*['%s'])
     logger.info('Datatypes converted from python to mysql.')
@@ -222,16 +221,8 @@ def download_from_s3(bucket,key_name):
 
 
 def gcp(df,spreadsheet_id,worksheet_name):
-    """_summary_
-
-    Parameters
-    ----------
-    df : 
-    spreadsheet_id :
-    worksheet_name : 
-
-    Returns
-    -------
+    """
+    Connecting to GCP to create and update sheets. 
     
     """
     
