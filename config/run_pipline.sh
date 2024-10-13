@@ -6,9 +6,7 @@ python3 src/database_connect.py -cd True -db "Inventory_raw"
 
 # normalize and clean data, and upload to database
 echo "\n.......Creating table & uploading data......."
-python3 src/database_connect.py -db "Inventory_raw" -tb 'sales' -fp 'data/sales.csv'
-python3 src/database_connect.py -db "Inventory_raw" -tb 'stock_level' -fp 'data/sensor_stock_levels.csv'
-python3 src/database_connect.py -db "Inventory_raw" -tb 'stock_temp' -fp 'data/sensor_storage_temperature.csv'
+python3 src/database_connect.py -db "Inventory_raw" -id "upload-to-database"
 
 echo "\n.......Running ETL......."
 python3 src/etl.py

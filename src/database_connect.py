@@ -1,5 +1,7 @@
 import argparse
 import yaml
+from pathlib import Path
+import os
 
 from utils import (convert_dtypes, get_data, database, dbconnect, download_from_s3,
                    table, upload_to_s3)
@@ -13,7 +15,7 @@ parser.add_argument('-id', '--task_id', type=str, help='The tasks defined in the
 args = parser.parse_args()
 
 # load tasks from config --------------------------------------------------------------
-with open("./config/config.yaml", 'r') as f:
+with open("./config/config.yml", 'r') as f:
     config = yaml.load(f, Loader=yaml.FullLoader)
 
 #Connection to database
