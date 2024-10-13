@@ -15,6 +15,4 @@ echo "\n.......Creating processed database......."
 python3 src/database_connect.py -cd True -db 'Agg_store'
 
 echo "\n.......Creating table & uploading data......."
-python3 src/database_connect.py -db 'Agg_store' -tb 'sales_agg' -fp 'data/sales_agg.csv'
-python3 src/database_connect.py -db 'Agg_store' -tb 'stocklevel_agg' -fp 'data/sensor_stock_level_agg.csv'
-python3 src/database_connect.py -db 'Agg_store' -tb 'stocktemp_agg' -fp 'data/sensor_stock_temperature_agg.csv'
+python3 src/database_connect.py -db 'Agg_store' -id "cleaned-upload-to-database"
