@@ -131,7 +131,7 @@ def table(cr, dbname:str, tbname: str,col_name: str) -> None:
     logger.info('Table Created')
 
 
-def data(filepath):
+def get_data(filepath):
     """ Function to remove Unnamed: 0 Column.
 
     Parameters
