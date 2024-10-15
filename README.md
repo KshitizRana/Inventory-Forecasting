@@ -14,6 +14,7 @@ Credit- [Data to production](https://www.datatoproduction.com/mentorship-program
 ## Dashboard
 
 ![Dashboard](/img/Dashboard.png)
+[Dashboard](https://lookerstudio.google.com/reporting/862ba347-72ca-4f0b-a9b6-f5b2a216beb4)
 
 ## Requirements
 
