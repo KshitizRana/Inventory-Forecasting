@@ -1,13 +1,14 @@
 import logging
 import os
-from typing import List, Tuple
-
+import importlib
 import boto3
 import gspread
 import mysql.connector
 import pandas as pd
+
 from dotenv import load_dotenv
 from oauth2client.service_account import ServiceAccountCredentials
+from typing import List, Tuple
 
 load_dotenv(".env")
 logger = logging.getLogger(__name__)
@@ -131,7 +132,7 @@ def table(cr, dbname:str, tbname: str,col_name: str) -> None:
     logger.info('Table Created')
 
 
-def data(filepath):
+def get_data(filepath):
     """ Function to remove Unnamed: 0 Column.
 
     Parameters
@@ -278,3 +279,13 @@ def gcp(df,spreadsheet_id,worksheet_name):
         return True
     else:
         return False
+
+def process_task(task: str) -> dict:
+    """Import task file to process the data from src/tools folder
+    Args:
+        task (str): name of the task to process
+    Returns:
+        dict: processed_data
+    """
+    lib = importlib.import_module(f"src.{task}")
+    return lib.process()

@@ -9,20 +9,25 @@ Based on the data provided, can we accurately predict the stock levels of produc
 ## Project Architecture
 
 ![Project_Architecture](/img/IMG-20240718-WA0008.jpg)
+Credit- [Data to production](https://www.datatoproduction.com/mentorship-program)
+
+## Dashboard
+
+![Dashboard](/img/Dashboard.png)
 
 ## Requirements
 
-| Library                        | Description                                                             |
-| ------------------------------ | ----------------------------------------------------------------------- |
-| `mysql-connector-python`       | A library that provides connectivity to MySQL databases.                |
-| `pandas`                       | A library for data manipulation and analysis.                           |
-| `python-dotenv`                | A library for working with environment variables stored in a .env file. |
-| `argparse`                     | A library for parsing command line arguments.                           |
-| `os`                           | A library for interacting with the operating system.                    |
-| `gspread`                      | A library for working with Google Sheets.                               |
-| `oauth2client.service_account` | A library for authenticating with Google APIs using a service account.  |
-| `prophet`                      | library for time series forecasting developed by Facebook.              |
-| `boto3`                        | A library for interacting with AWS services using Python.               |
+| Library                        | Description                                                                                                                |
+| ------------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
+| `mysql-connector-python`       | A library that provides connectivity to MySQL databases.                                                                   |
+| `pandas`                       | A library for data manipulation and analysis.                                                                              |
+| `python-dotenv`                | A library for working with environment variables stored in a .env file.                                                    |
+| `argparse`                     | A library for parsing command line arguments.                                                                              |
+| `os`                           | A library for interacting with the operating system.                                                                       |
+| `gspread`                      | A library for working with Google Sheets.                                                                                  |
+| `oauth2client.service_account` | A library for authenticating with Google APIs using a service account.                                                     |
+| `RandomForestRegressor`        | Predicts a continuous target by averaging outputs from multiple decision trees to improve accuracy and reduce overfitting. |
+| `boto3`                        | A library for interacting with AWS services using Python.                                                                  |
 
 ## PROJECT STRUCTURE
 
@@ -35,20 +40,12 @@ Based on the data provided, can we accurately predict the stock levels of produc
 ├── SRC
 │   ├── __init__.py
 │   ├── <python scripts>
-├── TESTS
-│   ├── __init__.py
-│   ├── <all test files>
 ├── CONFIG
 │   ├── config.yml
-│   ├── config_template.yml
-├── .GITHUB
-│   ├── pull_request_template.md
-│   ├── WORKFLOW
-│       ├── github-actions.yml
-├── Docker
-├── Makefile
+│   ├── run_pipline.sh
 ├── requirements.txt
 ├── .gitignore
+├──  logfile.log
 ```
 
 ## Giving Credit
@@ -93,55 +90,67 @@ conda activate <your_env_name>
 
 #### This step is necessary to activate the Conda environment that wil contain all the required [libraries and dependencies](https://github.com/KshitizRana/Inventory-Forecasting/blob/main/requirements.txt) for the project.
 
-#### STEP- :: : Install all the requirements from the `requirements.txt`
+#### STEP- :three: : Install all the requirements from the `requirements.txt`
 
 ```
 pip install -r requirements.txt
 ```
 
-#### STEP - :three: : Create the database by running the below code
+#### STEP - :four: : Create the database by running the below code
 
 ```
-
+python src/database_connect.py -cd True -nd "YourDatabaseName"
 ```
 
 #### This step creates the database with the specified name. The -cd argument specifies whether to create or drop the database, and -nd specifies the name of the database.
 
-#### STEP - :four: : Load the data into the database by running
+#### STEP - :five: : Load the data into the database by running
 
-` `
+```
+python src/database_connect.py -db "YourDatabaseName" -id upload-to-database
+```
 
 #### This step loads the raw data into the database. The -nd argument specifies the name of the database, and -id specifies the operation to be performed (in this case, uploading data to the database).
 
-#### STEP - :five: : Run the ETL script to transform the data by running
+#### STEP - :six: : Run the ETL script to transform the data by running
 
-` `
+```
+python src/etl.py
+```
 
 #### This step performs the ETL (Extract-Transform-Load) process to transform the raw data into a format suitable for modeling.
 
-#### STEP - :six: : Create the cleaned database by running
+#### STEP - :seven: : Create the cleaned database by running
 
-` `
+```
+python3 src/database_connect.py -cd True -db 'YourDatabaseName'
+```
 
 #### This step creates a new database with the cleaned data.
 
-#### STEP - :seven: : Load the cleaned data into the database by running
+#### STEP - :eight: : Load the cleaned data into the database by running
 
-` `
+```
+python src/database_connect.py -db "CleanedDatabaseName" -id cleaned-upload-to-database
+```
 
 #### This step loads the cleaned data into the database.
 
-#### STEP - :eight: : Run main.py with task parameter
+#### STEP - :nine: : Run main.py with task parameter to upload processed to s3
 
-` `
+```
+python main.py -t data_extraction
+```
 
-#### This will execute the "main.py" script with the "sql_python" task parameter, triggering the SQL query and export process resulting output file (df) should be uploaded to the specified S3 bucket after the script completes execution.
+#### This will execute the "main.py" script with the "data_extraction" task parameter, triggering the SQL query and export process resulting output file (df) should be uploaded to the specified S3 bucket after the script completes execution.
 
-#### STEP - :nine: : Run the final modeling script by running the code
+#### STEP - :ten: : Run the final modeling script by running the code
 
-` `
+```
+python main.py -t inventory_forecasting_ml
+```
 
-#### This step runs the final modeling script to build a predictive model based on the cleaned data. The -t argument specifies the type of script to run, and "modeling_final" is the name of the script and uploads the Predictions to a Google Sheet
+#### This step runs the final modeling script to build a predictive model based on the cleaned data. The -t argument specifies the type of script to run, and "inventory_forecasting_ml" is the name of the script and uploads the Predictions to a Google Sheet
 
 ## Contributing Guide
 

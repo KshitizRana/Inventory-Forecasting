@@ -1,3 +1,4 @@
+conda
 isort
 pandas
 mysql-connector-python
@@ -10,3 +11,4 @@ gspread
 oauth2client
 google-api-python-client
 scikit-learn
+PyYAML
