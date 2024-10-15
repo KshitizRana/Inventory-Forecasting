@@ -6,8 +6,8 @@ SELECT
     a.unit_price,
     b.quantity,
     c.temperature
-FROM stocklevel_agg a
-LEFT JOIN sales_agg b
+FROM stock_processed a
+LEFT JOIN sales_processed b
     ON a.product_id = b.product_id AND a.timestamp = b.timestamp
-LEFT JOIN stocktemp_agg c
+LEFT JOIN temp_processed c
     ON a.timestamp = c.timestamp;
