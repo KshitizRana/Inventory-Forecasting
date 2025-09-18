@@ -2,6 +2,14 @@
 
 There is an abundance of AI based projects that one could think of in e-commerce. Imagine a food based retailer, one of the major issue that a retailer usually faces is with the supply chain. Groceries are short-lived products. If a retailer under stocks, this will mean that they are at the risk of losing customers, but if they overstock, they are wasting money on excessive storage in addition to waste. We could leverage AI to help retailer better stock the products that they sell. Since the problem is very broad, we break it down to a specific business problem statement.
 
+## 📄 Resume & Portfolio Resources
+
+For professional use and career purposes, this project includes comprehensive summaries optimized for ATS systems and recruiters:
+
+- **[Executive Summary](EXECUTIVE_SUMMARY.md)** - Concise project overview with key metrics and achievements
+- **[Resume Bullet Points](RESUME_BULLETS.md)** - ATS-friendly bullet points tailored for different roles  
+- **[Complete Project Summary](PROJECT_SUMMARY.md)** - Detailed technical documentation and business impact
+
 ## Problem Statement
 
 Based on the data provided, can we accurately predict the stock levels of products?
