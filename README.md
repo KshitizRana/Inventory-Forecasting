@@ -1,168 +1,159 @@
-# Inventory Forecasting
+# Turborepo starter
 
-There is an abundance of AI based projects that one could think of in e-commerce. Imagine a food based retailer, one of the major issue that a retailer usually faces is with the supply chain. Groceries are short-lived products. If a retailer under stocks, this will mean that they are at the risk of losing customers, but if they overstock, they are wasting money on excessive storage in addition to waste. We could leverage AI to help retailer better stock the products that they sell. Since the problem is very broad, we break it down to a specific business problem statement.
+This Turborepo starter is maintained by the Turborepo core team.
 
-## Problem Statement
+## Using this example
 
-Based on the data provided, can we accurately predict the stock levels of products?
+Run the following command:
 
-## Project Architecture
-
-![Project_Architecture](/img/IMG-20240718-WA0008.jpg)
-Credit- [Data to production](https://www.datatoproduction.com/mentorship-program)
-
-## Dashboard
-
-![Dashboard](/img/Dashboard.png)
-[Dashboard](https://lookerstudio.google.com/reporting/862ba347-72ca-4f0b-a9b6-f5b2a216beb4)
-
-## Requirements
-
-| Library                        | Description                                                                                                                |
-| ------------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
-| `mysql-connector-python`       | A library that provides connectivity to MySQL databases.                                                                   |
-| `pandas`                       | A library for data manipulation and analysis.                                                                              |
-| `python-dotenv`                | A library for working with environment variables stored in a .env file.                                                    |
-| `argparse`                     | A library for parsing command line arguments.                                                                              |
-| `os`                           | A library for interacting with the operating system.                                                                       |
-| `gspread`                      | A library for working with Google Sheets.                                                                                  |
-| `oauth2client.service_account` | A library for authenticating with Google APIs using a service account.                                                     |
-| `RandomForestRegressor`        | Predicts a continuous target by averaging outputs from multiple decision trees to improve accuracy and reduce overfitting. |
-| `boto3`                        | A library for interacting with AWS services using Python.                                                                  |
-
-## PROJECT STRUCTURE
-
-`NOTE: Anything in CAPS below are folder directories. `
-
-```
-├── README.md
-├── DATA
-│   ├── <all data>
-├── SRC
-│   ├── __init__.py
-│   ├── <python scripts>
-├── CONFIG
-│   ├── config.yml
-│   ├── run_pipline.sh
-├── requirements.txt
-├── .gitignore
-├──  logfile.log
+```sh
+npx create-turbo@latest
 ```
 
-## Giving Credit
+## What's inside?
 
-If you make changes to the code, it's important to give credit to the original project's author. You can do this by adding a note or comment to your code, or by including the original author's name and a link to the project in your documentation.
+This Turborepo includes the following packages/apps:
 
-For example, if you add a new feature to the code, you could include a comment like this:
+### Apps and Packages
 
-` // New feature added by [your name]. Original code by [original author name].`
+- `docs`: a [Next.js](https://nextjs.org/) app
+- `web`: another [Next.js](https://nextjs.org/) app
+- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
+- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
+- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
 
-`// Link to original project: [link to original project]`
+Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
 
-## Working with the Code
+### Utilities
 
-Once you have cloned the repository, you can start working with the code. Here are some tips to get you started:
+This Turborepo has some additional tools already setup for you:
 
-- Read the [User Guide](https://github.com/KshitizRana/Inventory-Forecasting#open_book-user-guide) and code comments to understand how the code works.
-- Make changes to the code as needed, testing your changes to ensure they work correctly.
-- If you want to contribute your changes back to the original project, create a pull request on Github. Be sure to include a detailed description of your changes and why they are important or necessary.
+- [TypeScript](https://www.typescriptlang.org/) for static type checking
+- [ESLint](https://eslint.org/) for code linting
+- [Prettier](https://prettier.io) for code formatting
 
-## User Guide
+### Build
 
-#### STEP - :one: : Navigate to the project directory in the terminal by running
+To build all apps and packages, run the following command:
 
-```
-cd <file location>
-```
+With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
 
-#### This step is necessary to ensure that you are in the correct directory where the project files are located.
-
-#### STEP - :two: : Create a environment for project by running
-
-```
-conda create -n <your_env_name>
-```
-
-#### Once created activate the project environment
-
-```
-conda activate <your_env_name>
+```sh
+cd my-turborepo
+turbo build
 ```
 
-#### This step is necessary to activate the Conda environment that wil contain all the required [libraries and dependencies](https://github.com/KshitizRana/Inventory-Forecasting/blob/main/requirements.txt) for the project.
+Without global `turbo`, use your package manager:
 
-#### STEP- :three: : Install all the requirements from the `requirements.txt`
-
-```
-pip install -r requirements.txt
-```
-
-#### STEP - :four: : Create the database by running the below code
-
-```
-python src/database_connect.py -cd True -nd "YourDatabaseName"
+```sh
+cd my-turborepo
+npx turbo build
+yarn dlx turbo build
+pnpm exec turbo build
 ```
 
-#### This step creates the database with the specified name. The -cd argument specifies whether to create or drop the database, and -nd specifies the name of the database.
+You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
 
-#### STEP - :five: : Load the data into the database by running
+With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
 
-```
-python src/database_connect.py -db "YourDatabaseName" -id upload-to-database
-```
-
-#### This step loads the raw data into the database. The -nd argument specifies the name of the database, and -id specifies the operation to be performed (in this case, uploading data to the database).
-
-#### STEP - :six: : Run the ETL script to transform the data by running
-
-```
-python src/etl.py
+```sh
+turbo build --filter=docs
 ```
 
-#### This step performs the ETL (Extract-Transform-Load) process to transform the raw data into a format suitable for modeling.
+Without global `turbo`:
 
-#### STEP - :seven: : Create the cleaned database by running
-
-```
-python3 src/database_connect.py -cd True -db 'YourDatabaseName'
-```
-
-#### This step creates a new database with the cleaned data.
-
-#### STEP - :eight: : Load the cleaned data into the database by running
-
-```
-python src/database_connect.py -db "CleanedDatabaseName" -id cleaned-upload-to-database
+```sh
+npx turbo build --filter=docs
+yarn exec turbo build --filter=docs
+pnpm exec turbo build --filter=docs
 ```
 
-#### This step loads the cleaned data into the database.
+### Develop
 
-#### STEP - :nine: : Run main.py with task parameter to upload processed to s3
+To develop all apps and packages, run the following command:
 
-```
-python main.py -t data_extraction
-```
+With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
 
-#### This will execute the "main.py" script with the "data_extraction" task parameter, triggering the SQL query and export process resulting output file (df) should be uploaded to the specified S3 bucket after the script completes execution.
-
-#### STEP - :ten: : Run the final modeling script by running the code
-
-```
-python main.py -t inventory_forecasting_ml
+```sh
+cd my-turborepo
+turbo dev
 ```
 
-#### This step runs the final modeling script to build a predictive model based on the cleaned data. The -t argument specifies the type of script to run, and "inventory_forecasting_ml" is the name of the script and uploads the Predictions to a Google Sheet
+Without global `turbo`, use your package manager:
 
-## Contributing Guide
+```sh
+cd my-turborepo
+npx turbo dev
+yarn exec turbo dev
+pnpm exec turbo dev
+```
 
-If you would like to contribute to this project, please create a pull request on an other branch so that we don't mess up main code: [Pull Request](https://github.com/KshitizRana/Inventory-Forecasting/compare)
+You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
 
-## Conclusion
+With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
 
-This project showcases the ability to handle real-world data and solve a problem using data science techniques. The project can be used as a reference for building similar projects in the future. Feel free to use the code and make modifications as per your requirements and don't forget to give credit.
+```sh
+turbo dev --filter=web
+```
 
-## Created and Contributed by
+Without global `turbo`:
 
-[Kshitiz Rana](https://www.linkedin.com/in/kshitiz-rana-264457226)
+```sh
+npx turbo dev --filter=web
+yarn exec turbo dev --filter=web
+pnpm exec turbo dev --filter=web
+```
 
-[Data To Production (Mitul Patel Msc - Mentor)](https://www.linkedin.com/in/mitul-patel2393/)
+### Remote Caching
+
+> [!TIP]
+> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
+
+Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
+
+By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
+
+With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
+
+```sh
+cd my-turborepo
+turbo login
+```
+
+Without global `turbo`, use your package manager:
+
+```sh
+cd my-turborepo
+npx turbo login
+yarn exec turbo login
+pnpm exec turbo login
+```
+
+This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
+
+Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
+
+With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
+
+```sh
+turbo link
+```
+
+Without global `turbo`:
+
+```sh
+npx turbo link
+yarn exec turbo link
+pnpm exec turbo link
+```
+
+## Useful Links
+
+Learn more about the power of Turborepo:
+
+- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
+- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
+- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
+- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
+- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
+- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
