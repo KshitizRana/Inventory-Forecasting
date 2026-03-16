@@ -1,0 +1,29 @@
+[project]
+name = "inventory-ml-service"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.110.0",
+    "uvicorn[standard]>=0.29.0",
+    "sqlalchemy[asyncio]>=2.0.29",
+    "asyncpg>=0.29.0",           # async PostgreSQL driver
+    "alembic>=1.13.0",
+    "pydantic-settings>=2.2.0",
+    "pandas>=2.2.0",
+    "scikit-learn>=1.4.0",
+    "xgboost>=2.0.0",
+    "optuna>=3.6.0",
+    "mlflow>=2.12.0",
+    "arq>=0.26.0",               # async background jobs
+    "sqlglot>=23.0.0",           # SQL parsing for chat safety
+    "python-multipart>=0.0.9",   # file upload support
+    "openpyxl>=3.1.0",           # xlsx reading
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "httpx>=0.27.0",             # async test client for FastAPI
+    "factory-boy>=3.3.0",        # test data factories
+]
