@@ -10,3 +10,5 @@ __pycache__/
 venv/
 env/
 .env
+
+apps/ml-services/inventory_ml_service.egg-info
